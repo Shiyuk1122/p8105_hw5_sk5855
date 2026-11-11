@@ -1,0 +1,47 @@
+---
+title: "p8105_hw5_sk5855"
+author: "Shiyu KANG"
+date: "2026-11-10"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Problem 1
+```{r problem 1}
+library(tidyverse)
+same_birthday = function(n) {
+  birthday_vector = sample(1:365, size = n, replace = TRUE)
+  n_distinct(birthday_vector) < n
+}
+same_birthday(30)
+
+sim_results = expand_grid(
+  range = 2:50,
+  iter = 1:10000
+) |>
+  mutate(repeated = map_lgl(range, same_birthday)) |>
+  group_by(range) |>
+  summarize(
+    probability = mean(repeated)
+  )
+
+sim_plot = sim_results |>
+  ggplot(aes(x = range, y = probability)) +
+  geom_line() +
+  labs(
+    title = "Probability of a Shared Birthday",
+    x = "Group size",
+    y = "Estimated probability"
+  ) +
+  theme_minimal()
+
+sim_plot
+```
+As the group size increases, the probability that at least two people share a birthday also increases. The probability is about 50% for a group of 23 people and about 97% for a group of 50 people. This shows that shared birthdays are common even in groups much smaller than 365 people.
+
+## Problem 2
+```{r}
+
+```
+
