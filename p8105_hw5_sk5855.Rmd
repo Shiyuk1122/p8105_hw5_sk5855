@@ -13,8 +13,10 @@ library(tidyverse)
 same_birthday = function(n) {
   birthday_vector = sample(1:365, size = n, replace = TRUE)
   n_distinct(birthday_vector) < n
-}
+} 
 same_birthday(30)
+
+set.seed(42)
 
 sim_results = expand_grid(
   range = 2:50,
@@ -43,5 +45,43 @@ As the group size increases, the probability that at least two people share a bi
 ## Problem 2
 ```{r}
 
+```
+
+
+## Problem 3
+```{r}
+sim_t_test = function(mu) {
+  x = rnorm(n = 30, mean = mu, sd = 5)
+  t = t.test(x, mu = 0) |>
+    broom::tidy()
+  
+  t |>
+    select(estimate, p.value)
+}
+
+set.seed(42)
+
+sim_t_results = expand.grid(
+  mu_value = 0:6,
+  iter = 1:5000
+) |>
+  mutate(
+    true_result = map(mu_value, sim_t_test)
+  ) |>
+  unnest(true_result) |>
+  mutate(
+    reject = p.value < 0.05
+  )
+
+summary_t = sim_t_results |>
+  group_by(mu_value) |>
+  summarise(
+    rejection_rate = mean(reject),
+    avg_estimate = mean(estimate),
+    avg_estimate_rej = mean(estimate[reject])
+  )
+
+plot_1 = summary_t |>
+  ggplot(aes(x = ))
 ```
 
