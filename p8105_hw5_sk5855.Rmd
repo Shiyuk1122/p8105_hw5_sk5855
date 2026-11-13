@@ -1,7 +1,7 @@
 ---
 title: "p8105_hw5_sk5855"
 author: "Shiyu KANG"
-date: "2026-11-10"
+date: "2026-11-13"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -40,13 +40,53 @@ sim_plot = sim_results |>
 
 sim_plot
 ```
+
 As the group size increases, the probability that at least two people share a birthday also increases. The probability is about 50% for a group of 23 people and about 97% for a group of 50 people. This shows that shared birthdays are common even in groups much smaller than 365 people.
 
 ## Problem 2
 ```{r}
+files_df = tibble(
+  path = list.files(
+    "data",
+    pattern = "\\.csv$",
+    full.names = TRUE
+  )
+)
 
+files_df = files_df |>
+  mutate(data = map(path,read_csv))
+
+study_df = files_df |>
+  mutate(
+    filename = basename(path),
+    filename = str_remove(filename, "\\.csv$")
+  ) |>
+  separate(
+  filename,
+  into = c("arm", "subject_id"),
+  sep = "_"
+) |> 
+  select(arm, subject_id, data) |>
+  unnest(data) |>
+  pivot_longer(
+    cols = week_1:week_8,
+    names_to = "week",
+    names_prefix = "week_",
+    values_to = "observations"
+  ) |>
+  mutate(week = as.integer(week))
+
+study_df |>
+  ggplot(aes(x = week, y = observations, color = arm, group = interaction(arm, subject_id))) +
+  geom_line() +
+  labs(
+    x = "week",
+    y = "observations"
+  ) +
+  theme_minimal()
 ```
 
+The experimental group shows an overall increasing trend over the eight weeks, while the control group fluctuates without a clear upward trend. Although the groups overlap at the beginning, their observations become more separated over time, with higher values in the experimental group. Individual variability is present in both groups.
 
 ## Problem 3
 ```{r}
@@ -82,6 +122,27 @@ summary_t = sim_t_results |>
   )
 
 plot_1 = summary_t |>
-  ggplot(aes(x = ))
+  ggplot(aes(x = mu_value, y = rejection_rate)) +
+  geom_line() +
+    labs(
+    x = "True mean (mu)",
+    y = "Rejection rate"
+  ) +
+  theme_minimal()
+plot_1
+
+plot_2 = summary_t |>
+  ggplot(aes(x = mu_value, y = avg_estimate)) +
+  geom_line(aes(color = "All samples")) +
+  geom_line(aes(y = avg_estimate_rej, color = "Rejected samples")) +
+  labs(
+    x = "True mean (mu)",
+    y = "Average estimated mean",
+    color = "Sample group"
+  ) +
+  theme_minimal()
+
+plot_2
 ```
 
+As the true mean increases, the power of the test increases and approaches 1. The average estimated mean across all samples is close to the true mean. However, when considering only samples in which the null hypothesis is rejected, the average estimate tends to be higher than the true mean for small positive values of μ. This occurs because samples with unusually large estimated means are more likely to produce significant results. As μ increases, almost all samples reject the null, so this selection bias decreases. At μ = 0, the average among rejected samples remains approximately zero because the two-sided test selects extreme estimates in both directions.
